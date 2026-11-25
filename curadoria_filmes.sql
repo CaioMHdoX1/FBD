@@ -215,32 +215,44 @@ INSERT INTO IntervencaoRestauracao (id_copia, id_restaurador, id_equipamento, da
 
 -- Item 1 (Filtro por intervalo de datas)
 -- Pergunta: Quais intervenções tiveram início entre 2026-03-01 e 2026-06-30?
-SELECT id_intervencao, data_inicio, data_fim FROM IntervencaoRestauracao
-WHERE data_inicio BETWEEN '2026-03-01' AND '2026-06-30';
+SELECT id_intervencao, data_inicio, data_fim
+FROM IntervencaoRestauracao
+WHERE data_inicio BETWEEN '2026-03-01' AND '2026-06-30'
+ORDER BY id_intervencao;
 -- Resultado esperado: 3,4,5,6
 
 -- Item 2 (Filtro de texto com LIKE)
 -- Pergunta: Quais filmes têm "CineLab" no título de distribuição?
-SELECT id_filme, titulo_distribuicao FROM Filme
-WHERE titulo_distribuicao LIKE '%CineLab%';
+SELECT id_filme, titulo_original, titulo_distribuicao
+FROM Filme
+WHERE titulo_distribuicao LIKE '%CineLab%'
+ORDER BY id_filme;
 -- Resultado esperado: 3,4
 
 -- Item 3 (UNION e INTERSECT)
 -- Pergunta: Liste os IDs de filmes que têm cópias armazenadas em salas com capacidade > 45 (UNION) e aqueles que são sequências de outro filme (INTERSECT).
-SELECT f.id_filme FROM Filme f JOIN CopiaFisica c ON f.id_filme = c.id_filme
+-- 3a - UNION:
+SELECT c.id_filme
+FROM CopiaFisica c
 JOIN SalaClimatizada s ON c.id_sala_atual = s.id_sala
 WHERE s.capacidade_maxima_latas > 45
 UNION
 SELECT id_filme FROM Filme WHERE id_filme_sequencia IS NOT NULL
+ORDER BY id_filme;
+
+--3b - INTERSECT:
+SELECT c.id_filme
+FROM CopiaFisica c
+JOIN SalaClimatizada s ON c.id_sala_atual = s.id_sala
+WHERE s.capacidade_maxima_latas > 45
 INTERSECT
-SELECT f.id_filme FROM Filme f JOIN CopiaFisica c ON f.id_filme = c.id_filme;
+SELECT id_filme FROM CopiaFisica WHERE estado_conservacao IN ('Regular','Ruim')
+ORDER BY id_filme;
 -- Resultado esperado: (dependendo dos dados, provável retorno 4)
 
 -- Item 4 (Função agregada)
 -- Pergunta: Qual a média de duração (em minutos) dos filmes?
-SELECT AVG(duracao_minutos) AS media_duracao FROM Filme;
--- Resultado esperado: ~101,5
-
+SELECT ROUND(AVG(duracao_minutos), 2) AS media_duracao FROM Filme;
 -- Item 5 (GROUP BY)
 -- Pergunta: Quantas cópias físicas existem por filme?
 SELECT f.id_filme, f.titulo_original, COUNT(c.id_copia) AS total_copias
@@ -249,18 +261,21 @@ GROUP BY f.id_filme, f.titulo_original;
 -- Resultado esperado: 1 para cada filme (8 linhas)
 
 -- Item 6 (HAVING)
--- Pergunta: Quais salas armazenam mais de 4 latas?
+-- Pergunta: Quais salas armazenam mais de 1 lata?
 SELECT s.id_sala, s.codigo_sala, COUNT(l.id_lata) AS total_latas
 FROM SalaClimatizada s JOIN CopiaFisica c ON s.id_sala = c.id_sala_atual
 JOIN LataArmazenamento l ON c.id_copia = l.id_copia
 GROUP BY s.id_sala, s.codigo_sala
-HAVING COUNT(l.id_lata) > 4;
+HAVING COUNT(l.id_lata) > 1
+ORDER BY s.id_sala;
 -- Resultado esperado: (possível) SC-01, SC-03, etc.
 
 -- Item 7 (Subconsulta IN)
 -- Pergunta: Quais cópias nunca tiveram intervenção de restauração?
-SELECT id_copia FROM CopiaFisica
-WHERE id_copia NOT IN (SELECT id_copia FROM IntervencaoRestauracao);
+SELECT id_copia, numero_registro_tombo
+FROM CopiaFisica
+WHERE id_copia NOT IN (SELECT id_copia FROM IntervencaoRestauracao)
+ORDER BY id_copia;
 -- Resultado esperado: (nenhuma, pois todas têm intervenções)
 
 -- Item 8 (Subconsulta correlacionada EXISTS)
@@ -268,11 +283,15 @@ WHERE id_copia NOT IN (SELECT id_copia FROM IntervencaoRestauracao);
 SELECT c.id_copia, c.numero_registro_tombo
 FROM CopiaFisica c
 WHERE EXISTS (
-    SELECT 1 FROM IntervencaoRestauracao i
+    SELECT 1
+    FROM IntervencaoRestauracao i
     WHERE i.id_copia = c.id_copia
       AND (i.data_fim - i.data_inicio) > (
-          SELECT AVG(i2.data_fim - i2.data_inicio) FROM IntervencaoRestauracao i2 WHERE i2.data_fim IS NOT NULL)
-);
+          SELECT AVG(i2.data_fim - i2.data_inicio)
+          FROM IntervencaoRestauracao i2
+          WHERE i2.data_fim IS NOT NULL)
+)
+ORDER BY c.id_copia;
 -- Resultado esperado: (dependendo dos dados, pode retornar algumas cópias)
 
 -- Item 9 (INNER JOIN com três tabelas)
@@ -282,7 +301,8 @@ FROM IntervencaoRestauracao i
 JOIN CopiaFisica c ON i.id_copia = c.id_copia
 JOIN Filme f ON c.id_filme = f.id_filme
 JOIN Restaurador r ON i.id_restaurador = r.id_restaurador
-JOIN EquipamentoLaboratorio e ON i.id_equipamento = e.id_equipamento;
+JOIN EquipamentoLaboratorio e ON i.id_equipamento = e.id_equipamento
+ORDER BY i.data_inicio;
 -- Resultado esperado: 8 linhas com informações completas
 
 -- Item 10 (LEFT JOIN mostrando quem "não tem")
@@ -299,6 +319,10 @@ SELECT c.id_copia, f.titulo_original, c.estado_conservacao, s.codigo_sala, s.tem
 FROM CopiaFisica c
 JOIN Filme f ON c.id_filme = f.id_filme
 JOIN SalaClimatizada s ON c.id_sala_atual = s.id_sala;
+
+SELECT * FROM vw_copia_status
+WHERE temperatura_alvo_celsius > 20
+ORDER BY id_copia;
 
 -- Consulta usando a view: listar cópias em salas com temperatura acima de 20°C
 SELECT * FROM vw_copia_status WHERE temperatura_alvo_celsius > 20;
