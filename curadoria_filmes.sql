@@ -106,7 +106,7 @@ CREATE OR REPLACE FUNCTION fn_verifica_duracao_intervencao()
 RETURNS TRIGGER AS $$
 BEGIN
     IF NEW.data_fim IS NOT NULL THEN
-        IF (NEW.data_fim - NEW.data_inicio) > INTERVAL '30 days' THEN
+        IF (NEW.data_fim - NEW.data_inicio) > 30 THEN
             RAISE EXCEPTION 'Intervenção excede 30 dias – operação bloqueada';
         END IF;
     END IF;
