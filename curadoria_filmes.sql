@@ -124,15 +124,17 @@ FOR EACH ROW EXECUTE FUNCTION fn_verifica_duracao_intervencao();
 -- ====================================================
 
 -- Filmes
+-- Filmes (o filme 4 é sequência do filme 3; o filme 9 ainda não tem cópia física)
 INSERT INTO Filme (titulo_original, titulo_distribuicao, ano_producao, pais_origem, duracao_minutos, formato_original, sinopse, id_filme_sequencia) VALUES
-('O Estranho Mundo de Mr. W', 'Mr. W Original', 1975, 'Brasil', 90, '35mm', 'Um documentário sobre...', NULL),
-('A Luz da Aurora', 'Aurora Studios', 1982, 'Portugal', 110, '35mm', 'História épica de...', NULL),
-('CineLab 1', 'CineLab', 1990, 'EUA', 95, '35mm', 'Primeira entrega...', NULL),
-('CineLab 2', 'CineLab', 1992, 'EUA', 105, '35mm', 'Sequência de CineLab 1', 3),
-('Rolos Perdidos', 'ArchFilm', 2001, 'Itália', 120, '16mm', 'A busca pelos rolos...', NULL),
-('Sombras da Tela', 'ScreenArts', 2005, 'França', 100, '35mm', 'Mistério e restauração', NULL),
-('Eco da Película', 'RetroVision', 2010, 'Argentina', 85, '35mm', 'Um olhar nostálgico...', NULL),
-('Vozes do Passado', 'Heritage Films', 2015, 'Chile', 92, '35mm', 'Entrevistas com cineastas antigos', NULL);
+('O Estranho Mundo de Mr. W', 'Mr. W Original', 1975, 'Brasil', 90, '35mm', 'Documentário sobre um colecionador cearense que passou a vida registrando em película o cotidiano de uma vila de pescadores.', NULL),
+('A Luz da Aurora', 'Aurora Studios', 1982, 'Portugal', 110, '35mm', 'Drama histórico sobre uma família de faroleiros no litoral português durante a Revolução dos Cravos.', NULL),
+('CineLab 1', 'CineLab', 1990, 'EUA', 95, '35mm', 'Ficção científica em que estudantes de cinema descobrem um laboratório secreto de revelação de filmes.', NULL),
+('CineLab 2', 'CineLab', 1992, 'EUA', 105, '35mm', 'Continuação de CineLab 1: os estudantes tentam salvar o laboratório da demolição.', 3),
+('Rolos Perdidos', 'ArchFilm', 2001, 'Itália', 120, '16mm', 'Uma arquivista italiana busca rolos de um filme mudo desaparecido após a Segunda Guerra.', NULL),
+('Sombras da Tela', 'ScreenArts', 2005, 'França', 100, '35mm', 'Suspense ambientado em um cinema de Paris onde projeções antigas revelam um crime.', NULL),
+('Eco da Película', 'RetroVision', 2010, 'Argentina', 85, '35mm', 'Retrato nostálgico de um projecionista de Buenos Aires em seus últimos dias de trabalho.', NULL),
+('Vozes do Passado', 'Heritage Films', 2015, 'Chile', 92, '35mm', 'Entrevistas com cineastas chilenos veteranos sobre a produção durante os anos 1960.', NULL),
+('Fragmentos de Fortaleza', 'Cinemateca Norte', 2018, 'Brasil', 78, '35mm', 'Mosaico de registros urbanos de Fortaleza; a cópia física ainda será incorporada ao acervo.', NULL);
 
 -- Salas climatizadas
 INSERT INTO SalaClimatizada (codigo_sala, temperatura_alvo_celsius, umidade_relativa_alvo, capacidade_maxima_latas) VALUES
@@ -166,43 +168,46 @@ INSERT INTO LataArmazenamento (id_copia, codigo_etiqueta, material_lata, possui_
 (6,'L-006','Aço',TRUE),
 (7,'L-007','Alumínio',TRUE),
 (8,'L-008','Aço',FALSE);
+(1,'L-009','Alumínio',TRUE),
+(1,'L-010','Alumínio',TRUE),
+(3,'L-011','Alumínio',TRUE),
+(9,'L-012','Aço',TRUE);
 
 -- Restauradores
 INSERT INTO Restaurador (nome_completo, especialidade, registro_profissional, email_contato) VALUES
 ('Ana Silva','Limpeza de emulsão','RP-1001','ana.silva@restauracao.org'),
 ('Bruno Costa','Reparo físico','RP-1002','bruno.costa@restauracao.org'),
 ('Clara Mendes','Digitalização','RP-1003','clara.mendes@restauracao.org'),
-('David Nogueira','Colorização','RP-1004','david.nogueira@restauracao.org'),
+('David Nogueira','Correção de cor','RP-1004','david.nogueira@restauracao.org'),
 ('Elisa Ramos','Montagem de trilha sonora','RP-1005','elisa.ramos@restauracao.org'),
 ('Fábio Duarte','Conservação química','RP-1006','fabio.duarte@restauracao.org'),
-('Gisele Pires','Acabamento final','RP-1007','gisele.pires@restauracao.org'),
-('Hugo Lopes','Reparos de danos físicos','RP-1008','hugo.lopes@restauracao.org');
-
+('Gisele Pires','Inspeção e reembalagem','RP-1007','gisele.pires@restauracao.org'),
+('Hugo Lopes','Reparo de danos físicos','RP-1008','hugo.lopes@restauracao.org');
 -- Equipamentos de laboratório
 INSERT INTO EquipamentoLaboratorio (nome_equipamento, numero_serie, status_operacional, ultima_afericao) VALUES
-('Mesa de Trabalho','EQ-001','Operacional','2025-12-01'),
-('Scanner 35mm','EQ-002','Operacional','2025-10-15'),
-('Câmara de Secagem','EQ-003','Manutenção','2024-08-20'),
+('Mesa Enroladeira','EQ-001','Operacional','2025-12-01'),
+('Scanner 35mm 4K','EQ-002','Operacional','2025-10-15'),
+('Câmara de Secagem','EQ-003','Operacional','2025-08-20'),
 ('Balança de Precisão','EQ-004','Operacional','2025-09-05'),
-('Ventilador de Controle','EQ-005','Operacional','2025-11-20'),
-('Equipamento de Dessalinização','EQ-006','Operacional','2025-07-30'),
-('Software de Digitalização','EQ-007','Operacional','2025-01-12'),
+('Máquina de Limpeza Ultrassônica','EQ-005','Operacional','2025-11-20'),
+('Prensa de Emendas','EQ-006','Operacional','2025-07-30'),
+('Estação de Digitalização','EQ-007','Manutenção','2025-01-12'),
 ('Mesa de Montagem','EQ-008','Operacional','2025-06-18');
 
 -- Relacionamento N:N Restauro ↔ Equipamento (uso_diario)
 INSERT INTO RestauradorEquipamento (id_restaurador, id_equipamento, uso_diario_horas) VALUES
-(1,2,4.5),(2,3,3.0),(3,2,5.0),(4,5,2.5),(5,1,3.5),(6,4,4.0),(7,6,2.0),(8,8,3.0),(1,5,1.5);
+(1,5,4.5),(2,6,3.0),(3,2,5.0),(4,2,2.5),(5,8,3.5),(6,4,4.0),(7,1,2.0),(8,6,3.0),(1,1,1.5),(2,3,1.0);
 
 -- Intervenções de restauração (≥ 8 linhas)
 INSERT INTO IntervencaoRestauracao (id_copia, id_restaurador, id_equipamento, data_inicio, data_fim, tipo_procedimento, produtos_utilizados, observacoes_tecnicas) VALUES
-(1,1,2,'2026-01-10','2026-01-15','Limpeza de emulsão','Solvente A, Pano macio','Procedimento padrão'),
-(2,2,3,'2026-02-05','2026-02-08','Reparo físico','Adesivo B','Pequenos rasgos corrigidos'),
-(3,3,2,'2026-03-12','2026-03-20','Digitalização','Software X','Digitalização 4K'),
-(4,4,5,'2026-04-01','2026-04-04','Colorização','Corante Y','Cores equilibradas'),
-(5,5,1,'2026-05-15','2026-05-18','Montagem de áudio','Fita Z','Sincronização OK'),
-(6,6,4,'2026-06-10','2026-06-14','Conservação química','Químico C','Reação controlada'),
-(7,7,6,'2026-07-03','2026-07-06','Acabamento','Laca D','Acabamento brilhante'),
-(8,8,8,'2026-08-20','2026-08-23','Reparo físico','Adesivo E','Rasgo maior restaurado');
+(1,1,5,'2026-01-10','2026-01-15','Limpeza de emulsão','Álcool isopropílico, tecido sem fiapos','Procedimento padrão, sem perda de imagem'),
+(2,2,6,'2026-02-05','2026-02-08','Reparo físico','Fita de emenda de poliéster','Pequenos rasgos corrigidos'),
+(3,3,2,'2026-03-12','2026-03-20','Digitalização','Cartela de calibração, software de captura','Digitalização em 4K de cópia em estado ruim'),
+(4,4,2,'2026-04-01','2026-04-04','Correção de cor','Cartela de calibração IT8','Cores equilibradas após digitalização'),
+(5,5,8,'2026-05-15','2026-05-18','Montagem de trilha sonora','Fita magnética 16mm','Sincronização de áudio concluída'),
+(6,6,4,'2026-06-10','2026-06-14','Conservação química','Solução estabilizadora','Dosagem pesada e reação controlada'),
+(7,7,1,'2026-07-03','2026-07-06','Inspeção e reembalagem','Núcleos de rolo, luvas de algodão','Rolo reembalado e etiquetado'),
+(8,8,6,'2026-08-20','2026-08-23','Reparo físico','Fita de emenda de acetato','Rasgo maior restaurado');
 
 -- ====================================================
 -- 4️⃣ 12 itens de consulta (com comentários)
