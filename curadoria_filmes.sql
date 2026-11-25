@@ -12,22 +12,21 @@ CREATE TABLE Filme (
     id_filme               SERIAL PRIMARY KEY,
     titulo_original        VARCHAR(200) NOT NULL,
     titulo_distribuicao    VARCHAR(200) NOT NULL,
-    ano_producao           INT NOT NULL,
+    ano_producao           INT NOT NULL CHECK (ano_producao >= 1890), -- [NOVO CHECK]
     pais_origem            VARCHAR(100) NOT NULL,
     duracao_minutos        INT NOT NULL CHECK (duracao_minutos > 0),
     formato_original       VARCHAR(50) NOT NULL,
     sinopse                TEXT,
-    id_filme_sequencia     INT,                    -- autorrelacionamento (filme sequencia filme)
+    id_filme_sequencia     INT,
     CONSTRAINT fk_filme_sequencia FOREIGN KEY (id_filme_sequencia) REFERENCES Filme(id_filme)
 );
 
--- Tabela SalaClimatizada (local onde as cópias são mantidas)
 CREATE TABLE SalaClimatizada (
-    id_sala                 SERIAL PRIMARY KEY,
-    codigo_sala             VARCHAR(20) NOT NULL,
-    temperatura_alvo_celsius NUMERIC(4,1) NOT NULL CHECK (temperatura_alvo_celsius BETWEEN 15 AND 25),
-    umidade_relativa_alvo    NUMERIC(4,1) NOT NULL,
-    capacidade_maxima_latas  INT NOT NULL
+    id_sala                   SERIAL PRIMARY KEY,
+    codigo_sala               VARCHAR(20) NOT NULL UNIQUE, -- [NOVO UNIQUE]
+    temperatura_alvo_celsius  NUMERIC(4,1) NOT NULL CHECK (temperatura_alvo_celsius BETWEEN 15 AND 25),
+    umidade_relativa_alvo     NUMERIC(4,1) NOT NULL CHECK (umidade_relativa_alvo BETWEEN 30 AND 60), -- [NOVO CHECK]
+    capacidade_maxima_latas   INT NOT NULL CHECK (capacidade_maxima_latas > 0) -- [NOVO CHECK]
 );
 
 -- Tabela CopiaFisica (entidade fraca, depende de Filme)
@@ -35,23 +34,24 @@ CREATE TABLE CopiaFisica (
     id_copia                SERIAL PRIMARY KEY,
     id_filme                INT NOT NULL,
     id_sala_atual           INT NOT NULL,
-    numero_registro_tombo   VARCHAR(30) NOT NULL,
+    numero_registro_tombo   VARCHAR(30) NOT NULL UNIQUE, -- [NOVO UNIQUE]
     numero_rolo             VARCHAR(30) NOT NULL,
     tipo_suporte            VARCHAR(30) NOT NULL,
-    estado_conservacao      VARCHAR(30) NOT NULL,
-    metragem_atual          NUMERIC(6,2) NOT NULL,
+    estado_conservacao      VARCHAR(30) NOT NULL CHECK (estado_conservacao IN ('Bom','Regular','Ruim')), -- [NOVO CHECK]
+    metragem_atual          NUMERIC(6,2) NOT NULL CHECK (metragem_atual > 0), -- [NOVO CHECK]
     data_aquisicao          DATE NOT NULL,
+    CONSTRAINT uq_copia_rolo UNIQUE (id_filme, numero_rolo),   -- [NOVA CHAVE PARCIAL]
     CONSTRAINT fk_copia_filme FOREIGN KEY (id_filme) REFERENCES Filme(id_filme),
     CONSTRAINT fk_copia_sala  FOREIGN KEY (id_sala_atual) REFERENCES SalaClimatizada(id_sala)
 );
 
--- Tabela LataArmazenamento (entidade fraca referente a CopiaFisica)
 CREATE TABLE LataArmazenamento (
     id_lata                 SERIAL PRIMARY KEY,
     id_copia                INT NOT NULL,
     codigo_etiqueta         VARCHAR(30) NOT NULL,
     material_lata           VARCHAR(30) NOT NULL,
     possui_respiro          BOOLEAN NOT NULL,
+    CONSTRAINT uq_lata_etiqueta UNIQUE (id_copia, codigo_etiqueta),  -- [NOVA CHAVE PARCIAL]
     CONSTRAINT fk_lata_copia FOREIGN KEY (id_copia) REFERENCES CopiaFisica(id_copia)
 );
 
@@ -60,20 +60,18 @@ CREATE TABLE Restaurador (
     id_restaurador          SERIAL PRIMARY KEY,
     nome_completo           VARCHAR(150) NOT NULL,
     especialidade           VARCHAR(100) NOT NULL,
-    registro_profissional   VARCHAR(50) NOT NULL,
+    registro_profissional   VARCHAR(50) NOT NULL UNIQUE, -- [NOVO UNIQUE]
     email_contato           VARCHAR(150) NOT NULL
 );
 
--- Tabela EquipamentoLaboratorio
 CREATE TABLE EquipamentoLaboratorio (
     id_equipamento          SERIAL PRIMARY KEY,
     nome_equipamento        VARCHAR(150) NOT NULL,
-    numero_serie            VARCHAR(100) NOT NULL,
-    status_operacional      VARCHAR(30) NOT NULL,
+    numero_serie            VARCHAR(100) NOT NULL UNIQUE, -- [NOVO UNIQUE]
+    status_operacional      VARCHAR(30) NOT NULL CHECK (status_operacional IN ('Operacional','Manutenção')), -- [NOVO CHECK]
     ultima_afericao         DATE NOT NULL
 );
 
--- Tabela IntervencaoRestauracao (relacionamento entre Copia, Restaurador e Equipamento)
 CREATE TABLE IntervencaoRestauracao (
     id_intervencao          SERIAL PRIMARY KEY,
     id_copia                INT NOT NULL,
@@ -84,16 +82,16 @@ CREATE TABLE IntervencaoRestauracao (
     tipo_procedimento       VARCHAR(100) NOT NULL,
     produtos_utilizados     TEXT,
     observacoes_tecnicas    TEXT,
+    CONSTRAINT ck_interv_datas CHECK (data_fim IS NULL OR data_fim >= data_inicio), -- [NOVO CHECK]
     CONSTRAINT fk_interv_copia FOREIGN KEY (id_copia) REFERENCES CopiaFisica(id_copia),
     CONSTRAINT fk_interv_restaurador FOREIGN KEY (id_restaurador) REFERENCES Restaurador(id_restaurador),
     CONSTRAINT fk_interv_equipamento FOREIGN KEY (id_equipamento) REFERENCES EquipamentoLaboratorio(id_equipamento)
 );
 
--- Tabela N:N com atributo (Restaurador ↔ Equipamento) – uso_diario (horas)
 CREATE TABLE RestauradorEquipamento (
     id_restaurador          INT NOT NULL,
     id_equipamento          INT NOT NULL,
-    uso_diario_horas        NUMERIC(4,2) NOT NULL,
+    uso_diario_horas        NUMERIC(4,2) NOT NULL CHECK (uso_diario_horas > 0 AND uso_diario_horas <= 24), -- [NOVO CHECK]
     PRIMARY KEY (id_restaurador, id_equipamento),
     CONSTRAINT fk_re_restaurador FOREIGN KEY (id_restaurador) REFERENCES Restaurador(id_restaurador),
     CONSTRAINT fk_re_equipamento FOREIGN KEY (id_equipamento) REFERENCES EquipamentoLaboratorio(id_equipamento)
